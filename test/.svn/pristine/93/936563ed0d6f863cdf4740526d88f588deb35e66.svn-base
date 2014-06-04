@@ -1,0 +1,287 @@
+#!/user/bin/env python
+
+class TwoThreeST:
+    
+    class Node:
+        def __init__(self, key, val, node1=None, node2=None):
+            self.key = [key, None]
+            self.val = [val, None]            
+            self.child = [None] * 3
+            self.parent = None  
+            if node1:
+                self.child[0] = node1
+                node1.parent = self
+            if node2:
+                self.child[1] = node2
+                node2.parent = self                                
+            
+        def isLeaf(self):
+            return self.child[0] is None  
+        
+        def is2Node(self):
+            return self.key[1] is None
+           
+    def __init__(self):
+        self.root = None
+    
+    def size(self):
+        return self.__size(self.root)
+    
+    def __size(self, x):
+        if not x:
+            return 0
+        else:
+            return x.N
+    
+    def put(self, key, val):
+        if not self.root:
+            self.root = self.Node(key, val)
+        else:
+            self.__put(self.root, key, val)
+    
+    def __put(self, x, key, val):
+        if  x.isLeaf():
+            if x.is2Node():
+                if x.key[0] == key:
+                    x.val[0] = val
+                    return
+            else:
+                if x.key[0] == key:
+                    x.val[0] = val
+                    return
+                elif x.key[1] == key:
+                    x.val[1] = val 
+                    return               
+            self.__insert(x, key, val, None, None)
+        else:
+            if x.is2Node():
+                if key < x.key[0]:
+                    self.__put(x.child[0], key, val)
+                elif key > x.key[0]:
+                    self.__put(x.child[1], key, val)
+                else:
+                    x.val[0] = val
+            else:
+                if key < x.key[0]:
+                    self.__put(x.child[0], key, val)
+                elif key == x.key[0]:
+                    x.val[0] = val
+                elif key > x.key[0] and key < x.key[1]:
+                    self.__put(x.child[1], key, val)
+                elif key == x.key[1]:
+                    x.val[1] = val
+                else:
+                    self.__put(x.child[2], key, val)
+                    
+    def __insert(self, x, key, val, node1, node2):
+        if x.is2Node():
+            self.__insert2Node(x, key, val, node1, node2)
+        else:
+            """
+            p = [x.parent, key, val, node1. node2]
+            """
+            p = self.__insert3Node(x, key, val, node1, node2)
+            if not p[0]:
+                """
+                it must be root's parent
+                """ 
+                self.root = self.Node(p[1], p[2], p[3], p[4])
+            else:
+                self.__insert(p[0], p[1], p[2], p[3], p[4])
+    
+    def __insert2Node(self, x, key, val, node1, node2): 
+        if key < x.key[0]:
+            x.key[0], x.key[1] = key, x.key[0]
+            x.val[0], x.val[1] = val, x.val[0]
+            x.child[0] = node1
+            x.child[1], x.child[2] = node2, x.child[1]
+        else:
+            x.key[1] = key
+            x.val[1] = val
+            x.child[1] = node1
+            x.child[2] = node2
+        if node1:
+            node1.parent = x
+        if node2:
+            node2.parent = x
+        
+    def __insert3Node(self, x, key, val, node1, node2): 
+        if key < x.key[0]:
+            """
+              b c
+            /  \  \
+            m1 m2 m3
+            
+            insert a < b:
+                b
+               /  \ 
+              a    c
+             / \   / \
+             n1 n2 m2 m3
+            """
+            newNode1 = self.Node(key, val, node1, node2)
+            newNode2 = self.Node(x.key[1], x.val[1], x.child[1], x.child[2])
+            return x.parent, x.key[0], x.val[0], newNode1, newNode2
+        elif key > x.key[0] and key < x.key[1]:
+            """
+            insert b < a < c:
+                 a
+                /  \
+               b   c
+              / \  / \
+             m1 n1 n2 m3
+            """
+            newNode1 = self.Node(x.key[0], x.val[0], x.child[0], node1)
+            newNode2 = self.Node(x.key[1], x.val[1], node2, x.child[2])
+            return x.parent, key, val, newNode1, newNode2
+        else:
+            """
+            insert a > c:
+                 c
+                /  \
+               b   a
+              / \  / \
+             m1 m2 n1 n2 
+            """
+            newNode1 = self.Node(x.key[0], x.val[0], x.child[0], x.child[1])
+            newNode2 = self.Node(key, val, node1, node2)
+            return x.parent, x.key[1], x.val[1], newNode1, newNode2
+    
+    def get(self, key):
+        x,t = self.__get(self.root, key)
+        if not x:
+            return None
+        else:
+            return x.val[t]
+    
+    def __get(self, x, key):
+        if not x:
+            return None,None
+        if x.is2Node():
+            if key < x.key[0]:
+                return self.__get(x.child[0], key)
+            elif key > x.key[0]:
+                return self.__get(x.child[1], key)
+            else:
+                return x,0
+        else:
+            if key < x.key[0]:
+                return self.__get(x.child[0], key)
+            elif key == x.key[0]:
+                return x,0
+            elif key > x.key[0] and key < x.key[1]:
+                return self.__get(x.child[1], key)
+            elif key == x.key[1]:
+                return x,1
+            else:
+                return self.__get(x.child[2], key)
+        
+    def delete(self, key):
+        x,t = self.__get(self.root, key)
+        if not x:
+            return
+        else:
+            self.__delete(x, t)
+            
+    def __delete(self, x, t):
+        if not x.isLeaf():
+            leaf = self.__min(x.child[t+1])
+            x.key[t],leaf.key[0] = leaf.key[0],x.key[t]
+            x.val[t],leaf.val[0] = leaf.val[0],x.val[t]
+            self.__deleteLeaf(leaf,0)
+        else:
+            self.__deleteLeaf(x,t)
+            
+    def __deleteLeaf(self, x, t):
+        if not x.is2Node():
+            x.key[t],x.key[1] = x.key[1],x.key[t]
+            x.val[t],x.val[1] = x.val[1],x.val[t]
+            x.key[1] = None
+            x.val[1] = None
+            return
+        else:
+            
+            
+            
+            
+    def min(self):
+        if not self.root:
+            return None
+        x = self.__min(self.root)
+        return x.key[0]
+    
+    def __min(self, x):
+        if x.isLeaf():
+            return x
+        else:
+            return self.__min(x.child[0])
+        
+    def max(self):
+        if not self.root:
+            return None
+        x = self.__max(self.root)
+        if x.is2Node():
+            return x.key[0]
+        else:
+            return x.key[1]
+    
+    def __max(self, x):
+        if x.isLeaf():
+            return x
+        else:
+            if x.is2Node():
+                return self.__max(x.child[1])
+            else:
+                return self.__max(x.child[2]) 
+        
+        
+            
+    """
+    PreOrder, dump tree
+    """
+    def preOrder(self):
+        self.__preOrder(self.root)
+    
+    def __preOrder(self, x):
+        if not x:
+            return
+        if x.is2Node():
+            self.__preOrder(x.child[0])
+            print '2Node:',x.key[0], x.val[0]
+            self.__preOrder(x.child[1])
+        else:
+            self.__preOrder(x.child[0])
+            print '3Node key0:',x.key[0], x.val[0]
+            self.__preOrder(x.child[1])
+            print '3Node key1:',x.key[1], x.val[1]
+            self.__preOrder(x.child[2])
+           
+            
+import unittest
+
+class TestTwoThreeST(unittest.TestCase):
+                
+    def test_generic_operation(self):
+        a = [x for x in 'TWOTHREESEARCHTREEEXAMPLE']
+        b = range(len(a))
+        st = TwoThreeST()
+        for x,y in zip(a,b):
+            st.put(x,y)
+        st.preOrder()
+        self.assertEqual(st.get('C'), 12)
+        self.assertEqual(st.get('E'), 24)
+        self.assertEqual(st.get('S'), 8)
+        self.assertIsNone(st.get('B'))
+        self.assertIsNone(st.get('Y'))
+        self.assertEqual(st.min(), 'A')
+        self.assertEqual(st.max(), 'X')
+        
+                 
+        
+if __name__ == '__main__':
+    unittest.main(exit=False)         
+        
+        
+ 
+ 
+  

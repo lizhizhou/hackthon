@@ -1,0 +1,89 @@
+#!/user/bin/env python
+
+ 
+def InsertionSort(a, lo, hi):
+    for i in range(lo, hi+1):
+        for j in range(i,lo,-1):
+            if a[j] >= a[j-1]:
+                break
+            a[j],a[j-1]=a[j-1],a[j] 
+ 
+ 
+"""
+Optimation on quick sort is to introduce 3 partition when input is often equal.
+"""
+def Quick3Sort(a, lo, hi):
+    if hi <= lo:
+        return
+    lt = lo
+    i = lo + 1
+    gt = hi
+    while i <= gt:        
+        if a[i] < a[lt]:
+            a[lt], a[i] = a[i], a[lt]
+            lt += 1
+            i += 1
+        elif a[i] > a[lt]:
+            a[i], a[gt] = a[gt], a[i]
+            gt -= 1
+        else:
+            i += 1
+    else:
+        Quick3Sort(a, lo, lt - 1)
+        Quick3Sort(a, gt + 1, hi)
+      
+"""
+optimation on quick sort is to cut off to insertion sort when input is small (typical 5 - 15)
+"""
+def QuickSortCutoff(a, lo, hi, cutoff):
+    if hi <= lo + cutoff:
+        InsertionSort(a, lo, hi)
+        return
+    lt = lo
+    i = lo + 1
+    gt = hi
+    while i <= gt:        
+        if a[i] < a[lt]:
+            a[lt], a[i] = a[i], a[lt]
+            lt += 1
+            i += 1
+        elif a[i] > a[lt]:
+            a[i], a[gt] = a[gt], a[i]
+            gt -= 1
+        else:
+            i += 1
+    else:
+        QuickSortCutoff(a, lo, lt - 1, cutoff)
+        QuickSortCutoff(a, gt + 1, hi, cutoff)    
+
+ 
+import unittest
+
+class TestQuickSort(unittest.TestCase):   
+    
+    def test_insertion(self):
+        a = list('SORTEXAMPLE')
+        InsertionSort(a, 0, len(a)-1)
+        b = ''.join(a)
+        self.assertEqual(b, 'AEELMOPRSTX')        
+        
+    def test_quick3sort_nonequa(self):
+        a = list('SORTEXAMPLB')
+        Quick3Sort(a, 0, len(a)-1)
+        b = ''.join(a)
+        self.assertEqual(b, 'ABELMOPRSTX')
+
+    def test_quick3sort_equa(self):
+        a = list('SORTTTTTTEEEEXMAAAAAPLEEEE')
+        Quick3Sort(a, 0, len(a)-1)
+        b = ''.join(a)
+        self.assertEqual(b, 'AAAAAEEEEEEEELMOPRSTTTTTTX')
+
+    def test_quicksort_cutoff(self):  
+        a = list('SORTTTTTTEEEEXMAAAAAPLEEEE')
+        QuickSortCutoff(a, 0, len(a)-1, 10)
+        b = ''.join(a)
+        self.assertEqual(b, 'AAAAAEEEEEEEELMOPRSTTTTTTX')      
+        
+if __name__ == '__main__':
+    unittest.main(exit=False)        

@@ -1,0 +1,15 @@
+#!/user/bin/env python
+
+case = []
+with open('input.txt', 'r') as f:
+    for line in f:
+        case.append([int(x) for x in line.strip().split(' ')])
+        
+print case
+        
+    
+        
+    
+    
+    
+    

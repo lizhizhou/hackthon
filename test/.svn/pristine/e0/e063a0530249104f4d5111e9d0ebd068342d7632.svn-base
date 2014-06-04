@@ -1,0 +1,172 @@
+#!/user/bin/env python
+
+import threading
+import subprocess        
+
+class Command(object):
+    TIMEOUT = -2
+    SUCCESS = 0
+    ERROR = -1    
+    
+    def __init__(self, cmd):
+        self.cmd = cmd
+        self.process = None
+        self.out = ''
+        self.err = 0
+        
+    def run(self, timeout):
+        def target():
+            #print "subprocess started"
+            self.process = subprocess.Popen('exec '+self.cmd, shell=True,stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
+            self.out, self.err = self.process.communicate()
+            #print "subprocess finished"
+            
+        thread = threading.Thread(target=target)
+        thread.start()
+        
+        thread.join(timeout)
+        if thread.is_alive():
+            #print "Running Timeout, terminating process"
+            self.process.terminate()            
+            thread.join()
+            return self.TIMEOUT
+        else:
+            #print self.process.returncode
+            if self.process.returncode:
+                return self.ERROR
+            else:
+                return self.SUCCESS
+            
+    def output(self):
+        return self.out
+    
+    def error(self):
+        return self.err
+
+
+def compile(src):
+    pre,ext = src.split('.')
+    if ext == 'py':
+        return True, ''
+    elif ext == 'java':
+        cmd = Command('javac %s'%src)
+    elif ext == 'cpp':
+        cmd = Command('g++ %s -o %s'%(src,pre))
+    else:
+        return False, 'Unknown file'
+    ret = cmd.run(20)
+    if ret == Command.ERROR:
+        return False, cmd.output()
+    elif ret == Command.TIMEOUT:
+        return False, 'Compile timeout'
+    else:
+        return True, 'Compile succeeed'
+                
+def test(src, case, out):    
+    pre,ext = src.split('.')
+    if ext == 'py':
+        cmd = Command('python %s %s %s'%(src,case,out))
+    elif ext == 'java':
+        cmd = Command('java %s %s %s'%(pre, case,out))
+    elif ext == 'cpp':
+        cmd = Command('./%s %s %s'%(pre, case,out))
+    else:
+        return False, 'Unknown file'
+    
+    #if os.path.exists(out):
+    #    os.remove(out)
+    ret = cmd.run(15)
+    if ret == Command.ERROR:
+        return False, cmd.output()
+    elif ret == Command.TIMEOUT:
+        return False, 'Running timeout'
+    else:
+        if not os.path.exists(out):
+            return False, 'Output not generated'
+        else:
+            with open(out, 'r') as f:
+                import re
+                check = re.findall(r'(I|i)nvalid (I|i)nput',f.readline())
+                if len(check) == 0:                    
+                    return False, f.read()
+                else:
+                    return True, f.read()                   
+    
+    
+
+
+import unittest
+import os
+
+class HackTest(unittest.TestCase):
+    
+    @classmethod
+    def setUpClass(self):  
+        def ext_chk(x, y):
+            z = x.split('.')   
+            if z is None or len(z) < 2:
+                return False
+            else:
+                return z[1] in y  
+        print 'Setup'    
+        self.source = [f for f in os.listdir('source') if ext_chk(f,['java','cpp','py'])]
+        self.compiled = []
+        print 'source:',self.source
+        self.report = open('test_report.txt', 'w')
+        
+    def test_1(self): 
+        print 'Test compile'
+        self.report.write('='*50)
+        self.report.write('\n')
+        self.report.write('Test compile:\n')
+        os.chdir('source')
+        for src in self.source:            
+            ret, err = compile(src)
+            print '%s ... %s'%(src,ret)
+            self.report.write('%s...%s\n'%(src,ret))
+            self.report.write('%s\n'%err)
+            if ret:
+                self.compiled.append(src)   
+        else:            
+            print 'compiled:',self.compiled         
+        
+    def test_2(self):
+        print 'Test ASCII'
+        self.report.write('='*50)
+        self.report.write('\n')
+        self.report.write('Test ASCII:\n')        
+        for src in self.compiled:
+            ret, err = test(src, '../testcase/input_ascii.txt', 'output.txt')
+            print '%s...%s'%(src,ret)
+            self.report.write('%s...%s\n'%(src,ret))
+            self.report.write('%s\n'%err) 
+            
+    def test_3(self):
+        print 'Test Number'
+        self.report.write('='*50)
+        self.report.write('\n')
+        self.report.write('Test Number:\n')        
+        for src in self.compiled:
+            ret, err = test(src, '../testcase/input_number.txt', 'output.txt')
+            print '%s...%s'%(src,ret)
+            self.report.write('%s...%s\n'%(src,ret))
+            self.report.write('%s\n'%err)  
+            
+    def test_4(self):
+        print 'Test Lines'
+        self.report.write('='*50)
+        self.report.write('\n')
+        self.report.write('Test Lines:\n')        
+        for src in self.compiled:
+            ret, err = test(src, '../testcase/input_lines.txt', 'output.txt')
+            print '%s...%s'%(src,ret)
+            self.report.write('%s...%s\n'%(src,ret))
+            self.report.write('%s\n'%err)                
+        
+
+            
+if __name__ == '__main__':
+    unittest.main(exit=False)
+    
+    
+

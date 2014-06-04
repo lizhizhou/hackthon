@@ -1,0 +1,51 @@
+#!/user/bin/env python
+
+import threading
+import subprocess        
+
+class Command(object):
+    TIMEOUT = -2
+    SUCCESS = 0
+    ERROR = -1    
+    
+    def __init__(self, cmd):
+        self.cmd = cmd
+        self.process = None
+        self.out = ''
+        self.err = 0
+        
+    def run(self, timeout):
+        def target():
+            print "subprocess started"
+            self.process = subprocess.Popen(self.cmd, shell=True)
+            self.out, self.err = self.process.communicate()
+            print "subprocess finished"
+            
+        thread = threading.Thread(target=target)
+        thread.start()
+        
+        thread.join(timeout)
+        if thread.is_alive():
+            print "Running Timeout, terminating process"
+            self.process.terminate()
+            thread.join()
+            return self.TIMEOUT
+        else:
+            print self.process.returncode
+            if self.process.returncode:
+                return self.ERROR
+            else:
+                return self.SUCCESS
+            
+    def output(self):
+        return self.out
+    
+    def error(self):
+        return self.err
+            
+if __name__ == '__main__':
+    command = Command("echo 'Process started'; sleep 5; echo 'Process finished'")
+    command.run(timeout=3)
+    command.run(timeout=1)
+    
+

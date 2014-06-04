@@ -1,0 +1,111 @@
+#!/user/bin/env python
+
+import threading
+import subprocess        
+
+class Command(object):
+    TIMEOUT = -2
+    SUCCESS = 0
+    ERROR = -1    
+    
+    def __init__(self, cmd):
+        self.cmd = cmd
+        self.process = None
+        self.out = ''
+        self.err = 0
+        
+    def run(self, timeout):
+        def target():
+            print "subprocess started"
+            self.process = subprocess.Popen(self.cmd, shell=True, stdout=subprocess.PIPE)
+            self.out, self.err = self.process.communicate()
+            print "subprocess finished"
+            
+        thread = threading.Thread(target=target)
+        thread.start()
+        
+        thread.join(timeout)
+        if thread.is_alive():
+            print "Running Timeout, terminating process"
+            self.process.terminate()
+            thread.join()
+            return self.TIMEOUT
+        else:
+            #print self.process.returncode
+            if self.process.returncode:
+                return self.ERROR
+            else:
+                return self.SUCCESS
+            
+    def output(self):
+        return self.out
+    
+    def error(self):
+        return self.err
+
+
+def compile(src):
+    pre,ext = src.split('.')
+    if ext == 'py':
+        return True, ''
+    elif ext == 'java':
+        cmd = Command('javac %s'%src)
+    elif ext == 'cpp':
+        cmd = Command('g++ %s -o %s'%(src,pre))
+    else:
+        return False, 'Unknown file'
+    ret = cmd.run(20)
+    if ret == Command.ERROR:
+        return False, cmd.output()
+    elif ret == Command.TIMEOUT:
+        return False, 'Compile timeout'
+    else:
+        return True, ''
+                
+
+import unittest
+import os
+
+class HackTest(unittest.TestCase):
+    
+    @classmethod
+    def setUpClass(self):       
+        print 'Setup' 
+        ext_chk = lambda x, y: x.split('.')[1] in y     
+        self.source = [f for f in os.listdir('source') if ext_chk(f,['java','cpp','py'])]
+        self.testcase = [f for f in os.listdir('testcase') if ext_chk(f,['txt'])]
+        self.compiled = []
+        print 'source:',self.source
+        print 'testcase:',self.testcase
+        self.fsum = open('report_summary.txt', 'w')
+        self.fdet = open('report_detail.txt', 'w')
+        
+    def test_1(self): 
+        print 'Test compile'
+        self.fsum.write('Test compile:\n')
+        self.fdet.write('Test compile:\n')
+        os.chdir('source')
+        for src in self.source:            
+            ret, err = compile(src)
+            print '%s ... %s'%(src,ret)
+            self.fsum.write('%s...%s\n'%(src,ret))
+            self.fdet.write('%s...%s\n'%(src,ret))
+            self.fdet.write('%s\n'%err)
+            if ret:
+                self.compiled.append(src)
+            
+        
+    def test_2(self):
+        print 'Test ASCII'
+        
+        
+        
+        
+        
+
+            
+if __name__ == '__main__':
+    unittest.main(exit=False)
+    
+    
+

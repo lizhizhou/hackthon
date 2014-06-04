@@ -1,0 +1,80 @@
+#!/user/bin/env python
+
+class Edge:
+    
+    def __init__(self, v, w, weight):
+        self.__v = v
+        self.__w = w
+        self.__weight = weight
+        
+    def weight(self):
+        return self.__weight
+    
+    def either(self):
+        return self.__v
+    
+    def other(self, v):
+        if v == self.__v:
+            return self.__w
+        elif v == self.__w:
+            return self.__v
+        else:
+            return None
+        
+    def toString(self):
+        return '%s-%s: %s'%(self.__v,self__w,self.__weight)
+    
+class EdgeWeightGraph:
+    
+    def __init__(self, V):
+        self.__V = V
+        self.__E = 0
+        self.__adj = [[] for i in range(G.V())]
+        
+    def V(self):
+        return self.__V
+
+    def E(self):
+        return self.__E
+    
+    
+    def addEdge(self, e):
+        v = e.either()
+        w = e.other(v)
+        self.__adj[v].append(e)
+        self.__adj[w].append(e)
+        self.__E += 1
+        
+    def adj(self, v):
+        return self.__adj[v]
+    
+    def edges(self):
+        b = []
+        for i in range(self.__V):
+            for e in self.__adj[i]:
+                if e.other(v) > v:
+                    b.append(e)
+        return b
+        
+        
+      
+class PrimMST:
+    
+    def __init__(self, G):
+        self.__edgeTo = [-1 for i in range(G.V())]
+        self.__distTo = [-1 for i in range(G.V())]
+        self.__marked = [False for i in range(G.V())]
+        
+    
+        
+        
+        
+        
+        
+        
+        
+        
+        
+    
+    
+    

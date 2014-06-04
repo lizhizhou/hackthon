@@ -1,0 +1,14 @@
+#!/user/bin/env python
+
+import bst
+
+d = dict()
+Tree = bst.BST()
+with open('input.txt', 'r') as f:
+    for line in f:
+        pa = line.strip().split(' ')[18:]
+        #print pa
+        p = ' '.join(pa)
+        Tree.put(p, 1)
+        
+Tree.printTree()

@@ -1,0 +1,17 @@
+#!/user/bin/env python
+
+import bst
+
+d = dict()
+Tree = bst.BST()
+with open('input.txt', 'r') as f:
+    for line in f:
+        pa = line.strip().split(' ')[18:]
+        #print pa
+        p = ' '.join(pa)
+        Tree.put(p, 1)
+        
+Tree.printTree()
+
+print 'MAX is %s %s'%(Tree.max().key,Tree.max().val)
+print 'MIN is %s %s'%(Tree.min().key,Tree.min().val)

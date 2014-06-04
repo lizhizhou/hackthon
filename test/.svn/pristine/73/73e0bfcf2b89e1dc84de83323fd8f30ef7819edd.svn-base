@@ -1,0 +1,63 @@
+#!/user/bin/env python
+
+class WeightedQuickUnionUF:
+    
+    def __init__(self, n):
+        self.__count = n
+        self.__id = range(0,n)
+        self.__weight = [1] * n
+        
+    def count(self):
+        return self.__count
+    
+    def connected(self,p,q):
+        return self.__find(p) == self.__find(q)
+    
+    def __find(self,p):
+        while p != self.__id[p]:
+            p = self.__id[p]
+        else:
+            return p
+        
+    def union(self,p,q):
+        i = self.__find(p)
+        j = self.__find(q)
+        
+        if i == j:
+            return
+        
+        if self.__weight[i] < self.__weight[j]:
+            self.__id[i] = j
+            self.__weight[j] += self.__weight[i]
+        else:
+            self.__id[j] = i
+            self.__weight[i] += self.__weight[j]
+        self.__count -= 1
+        return
+    
+ 
+import unittest
+ 
+class TestUnionFind(unittest.TestCase):
+    
+    def test_general(self):
+        uf = WeightedQuickUnionUF(10)
+        uf.union(4, 3)
+        uf.union(3, 8)
+        uf.union(6, 5)
+        uf.union(9, 4)
+        uf.union(2, 1)
+        uf.union(8, 9)
+        uf.union(5, 0)
+        uf.union(7, 2)
+        self.assertTrue(uf.connected(9,3))
+        self.assertFalse(uf.connected(0,1))
+        self.assertEqual(uf.count(), 3)        
+        
+
+if __name__ == '__main__':
+    unittest.main(exit=False)
+        
+        
+        
+        

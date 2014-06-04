@@ -1,0 +1,16 @@
+#!/user/bin/env python
+
+class MaxPriorityQueue:
+    
+    def __init__(self):
+        self.__pq = []
+    
+    def isEmpty(self):
+        return len(self.__pq) == 0
+    
+    def size(self):
+        return len(self.__pq)
+    
+    def insert(self, v):
+        self.__pq.append(v)
+        self.__swim()

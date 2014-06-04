@@ -1,0 +1,58 @@
+#!/bin/bash
+
+hack="#HACKTHON#"
+echo $hack "Source file is $1"
+fullname="$1"
+extension="${fullname##*.}"
+filename="${fullname%.*}"
+#echo $extension
+#echo $filename
+
+case $extension in
+    java)
+        cmd="javac $fullname"               
+        ;;
+    py)
+        cmd="python $fullname"  
+        ;;
+    cpp)
+        cmd="g++ $fullname -o $filename"
+        ;;
+    *)
+        cmd="Invalid file."
+        ;;
+esac
+
+echo $hack $cmd
+eval $cmd
+#echo $?
+
+if [ $? -ne 0 ]; then
+    echo $hack "Complie Failed."
+    exit
+fi
+
+stime=$(date '+%s')
+#echo $stime
+
+case $extension in
+    java)
+        cmd="java $filename"               
+        ;;
+    py)
+        cmd="python $fullname"  
+        ;;
+    cpp)
+        cmd="./$filename"
+        ;;
+    *)
+        cmd="Invalid file."
+        ;;
+esac
+
+echo $hack $cmd
+eval $cmd
+
+etime=$(date '+%s')
+elapse=$((etime - stime))
+echo $hack "Time elapsed: $elapse"

@@ -1,0 +1,36 @@
+#!/user/bin/env python
+
+case = []
+with open('input.txt', 'r') as f:
+    for line in f:
+        case.append([int(x) for x in line.strip().split(' ')])
+        
+print case
+        
+def hanoi(disks, next): 
+    count = 0
+    if len(disks) == 0:
+        return count   
+    if disks[-1] > 1:
+        count += 3*hanoi(disks[:-1], disks[-1])
+        if next = 1:
+            count += disks[-1]
+        elif next > 1:
+            count += 2*disks[-1]
+        else:
+            count += 2*disks[-1] - 1
+    else:
+        count += 2*hanoi(disks[:-1], disks[-1])
+        count += 1
+    return count
+        
+for cs in case:
+    print hanoi(cs)   
+
+        
+       
+        
+    
+    
+    
+    
